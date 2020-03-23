@@ -30,6 +30,7 @@
             var score=0;
 
             function startGame() {
+                score=0
                 myObstacles=[];
                 myGamePiece;
                 myGamePiece = new component(20, 20, "red", 50, 120);
@@ -47,10 +48,10 @@
                     this.frameNo = 0;
                     this.interval = setInterval(updateGameArea, 20);
                     //updateGameArea()
-                    window.addEventListener('keydown', function (e) {
+                    window.addEventListener('keydown',  (e)=> {
                         myGameArea.key = e.keyCode;
                     })
-                    window.addEventListener('keyup', function (e) {
+                    window.addEventListener('keyup', (e)=> {
                         myGameArea.key = false;
                     })
                 },
@@ -111,7 +112,10 @@
                 var x, y, heightOb, rest;
                 for (i = 0; i < myObstacles.length; i += 1) {
                     if(myObstacles[i].x==myGamePiece.x){
-                        score+=1;
+                        if(myObstacles[i].x!=myObstacles[i].x||myObstacles[i].x!=myObstacles[i+1].x){
+                            score+=1;
+                        }
+                        
                         // console.log(myObstacles[i])
                         // deleter.push(myObstacles[i])
                     }
