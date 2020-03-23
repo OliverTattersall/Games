@@ -1,0 +1,154 @@
+<html>
+    <head>
+        <style>
+            canvas{
+                /* padding-top: 5%;
+                padding-left: 5%;
+                padding-right: 5%;
+                padding-bottom: 5%; */
+                /* width:90%;
+                height:90%; */
+                outline-color: black;
+                outline-width: 1px;
+                background-color:white;
+            }
+        </style>
+
+    </head>
+    <body onload="startGame()" style="background-color: black;">
+        <canvas id="area">
+
+        </canvas>
+        <div id="buttons">
+            
+
+        </div>
+        <script>
+            var myGamePiece;
+            var myObstacle;
+            var myObstacles=[];
+            var score=0;
+
+            function startGame() {
+                myObstacles=[];
+                myGamePiece;
+                myGamePiece = new component(20, 20, "red", 50, 120);
+                //myObstacle = new component(15, 300, "green", 450, 180);
+                myGameArea.start();
+            }
+
+            var myGameArea = {
+                canvas : document.getElementById("area"),
+                start : function() {
+                    this.canvas.width = 720;
+                    this.canvas.height = 405;
+                    this.context = this.canvas.getContext("2d");
+                    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                    this.frameNo = 0;
+                    this.interval = setInterval(updateGameArea, 20);
+                    //updateGameArea()
+                    window.addEventListener('keydown', function (e) {
+                        myGameArea.key = e.keyCode;
+                    })
+                    window.addEventListener('keyup', function (e) {
+                        myGameArea.key = false;
+                    })
+                },
+                clear : function() {
+                    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                },
+                stop : function() {
+                    clearInterval(this.interval);
+                }
+            }
+            function everyinterval(n) {
+                if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+                return false;
+            }
+            function component(width, height, color, x, y) {
+                this.width = width;
+                this.height = height;
+                this.x = x;
+                this.y = y;    
+                this.update = function(){
+                    ctx = myGameArea.context;
+                    ctx.fillStyle = color;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }; this.crashWith = function(otherobj) {
+                        var myleft = this.x;
+                        var myright = this.x + (this.width);
+                        var mytop = this.y;
+                        var mybottom = this.y + (this.height);
+                        var otherleft = otherobj.x;
+                        var otherright = otherobj.x + (otherobj.width);
+                        var othertop = otherobj.y;
+                        var otherbottom = otherobj.y + (otherobj.height);
+                        var crash = true;
+                    if ((mybottom < othertop) ||
+                    (mytop > otherbottom) ||
+                    (myright < otherleft) ||
+                    (myleft > otherright)) {
+                        crash = false;
+                    }
+                    return crash;
+                }
+            }
+            function disappear(){
+                document.getElementById("buttons").innerHTML="";
+            }
+            function end(){
+                myGameArea.clear()
+                ctx=myGameArea.context;
+                ctx.font="30px Arial"
+                ctx.fillText("Game Over", 250,150)
+                ctx.fillText("Your Score was: "+score, 250, 200)
+                document.getElementById("buttons").innerHTML='<button onclick="startGame(); disappear()" style="position: absolute; top:250px; left:300px;">Play Again</button>';
+            }
+
+            function updateGameArea() {
+                score;
+                var deleter=[];
+                var x, y, heightOb, rest;
+                for (i = 0; i < myObstacles.length; i += 1) {
+                    if(myObstacles[i].x==myGamePiece.x){
+                        score+=1;
+                        // console.log(myObstacles[i])
+                        // deleter.push(myObstacles[i])
+                    }
+                    if (myGamePiece.crashWith(myObstacles[i])) {
+                        myGameArea.stop();
+                        //myGameArea.canvas.width=0
+                        //alert(score)
+                        end()
+                        return;
+                    } 
+                }
+               
+                myGameArea.clear();
+                myGameArea.frameNo += 1;
+                if (myGameArea.frameNo == 1 || everyinterval(150)) {
+                    x = myGameArea.canvas.width;
+                    y = myGameArea.canvas.height;
+                    heightOb=Math.floor((Math.random()*335)+1)
+                    //console.log(heightOb)
+                    myObstacles.push(new component(10, heightOb, "green", x, 0));
+                    myObstacles.push(new component(10, (y)-(heightOb+70), "green", x, heightOb+70))
+                    //console.log(myObstacles)
+                }
+                for (i = 0; i < myObstacles.length; i += 1) {
+                    myObstacles[i].x += -1;
+                    myObstacles[i].update();
+                }
+                //myGamePiece.newPos();    
+                if (myGameArea.key && myGameArea.key == 38 && myGamePiece.y>0) {myGamePiece.y += -5; }
+                //if (myGameArea.key && myGameArea.key == 40&& myGamePiece.y<375) {myGamePiece.y += 5; }
+                if(myGamePiece.y<385){
+                    myGamePiece.y+=2
+                }
+                myGamePiece.update();
+            }
+
+        </script>
+
+    </body>
+</html>
