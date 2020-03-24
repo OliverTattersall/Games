@@ -1,0 +1,247 @@
+<html>
+    <head>
+        <style>
+            canvas{
+                /* padding-top: 5%;
+                padding-left: 5%;
+                padding-right: 5%;
+                padding-bottom: 5%; */
+                /* width:90%;
+                height:90%; */
+                outline-color: black;
+                outline-width: 1px;
+                background-color:white;
+            }
+        </style>
+
+    </head>
+    <body onload="startGame()" style="background-color: black;">
+        <canvas id="area"></canvas>
+        <div id="buttons">
+
+        </div>
+        <script>
+            let myGamepiece;
+            var myObstacles=[];
+            var score=0;
+            
+            function startGame() {
+                myObstacles=[];
+                score=0;
+                myGamePiece = new component(20, 20, "red", 50, 120);
+                myGameArea.start();
+            }
+
+            var myGameArea = {
+                canvas : document.getElementById("area"),
+                start : function() {
+                    this.canvas.width = 960;
+                    this.canvas.height = 540;
+                    this.context = this.canvas.getContext("2d");
+                    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                    this.frameNo = 0;
+                    this.interval = setInterval(updateGameArea,20);
+                    
+                    window.addEventListener('mousemove',  (e)=> {
+                        //myGameArea.key = e.keyCode;
+                        //console.log(e.x)
+                        //console.log(e.y)
+                        if(((e.x-20)<940)&&((e.y-20)<520)&&((e.x-20)>0)&&((e.y-20)>0)){
+                            myGamePiece.x=e.x-20;
+                            myGamePiece.y=e.y-20;
+                        }
+                        
+                    })
+                },
+                clear : function() {
+                    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                },
+                stop : function() {
+                    clearInterval(this.interval);
+                }
+            }
+
+            function everyinterval(n) {
+                if ((myGameArea.frameNo / n) % 1 == 0) {
+                    return true;
+                }
+                return false;
+            }
+
+            function enemy(x,y, radius, color){
+                this.radius=radius;
+                this.x=x;
+                this.y=y;
+                this.speedX=2;
+                this.speedY=2;
+                this.update = ()=>{
+                    ctx=myGameArea.context;
+                    ctx.beginPath()
+                    ctx.fillStyle=color;
+                    
+                    ctx.arc(this.x,this.y,this.radius, 0, 2* Math.PI)
+                    ctx.fill()
+                }; this.crashWith = (other)=>{
+                    var x=this.x;
+                    var y=this.y;
+                    var width=this.radius;
+                    var corners=[[other.x,other.y],[other.x, other.height],[other.width,other.height],[other.width, other.y]]
+                    if(x<other.x){
+                        console.log("less")
+                        if((other.x-x)<width){
+                            if (y<other.y){
+                                if((other.y-y)<width){
+                                    return true
+                                }else{
+                                    return false
+                                }
+                            }else if(y>other.y&&y<(other.y+other.width)){
+                                return true
+                            }else{
+                                if((y-other.y)<width){
+                                    return true
+                                }else{
+                                    return false
+                                }
+                            }
+                        }else{
+                            return false
+                        }
+                    }else if(x>other.x&&x<(other.x+other.width)){
+                        console.log("hit")
+                        if (y<other.y){
+                            if((other.y-y)<width){
+                                return true
+                            }else{
+                                return false
+                            }
+                        }else if(y>other.y&&y<(other.y+other.width)){
+                            return true
+                        }else{
+                            if((y-other.y)<width){
+                                return true
+                            }else{
+                                return false
+                            }
+                        }
+                    }else if(x>other.x){
+                        console.log("bigger")
+                        if((x-other.x)<width){
+                            console.log("continue")
+                            if (y<other.y){
+                                if((other.y-y)<width){
+                                    return true
+                                }else{
+                                    return false
+                                }
+                            }else if(y>other.y&&y<(other.y+other.width)){
+                                return true
+                            }else{
+                                if((y-other.y)<width){
+                                    return true
+                                }else{
+                                    return false
+                                }
+                            }
+                        }else{
+                            console.log("hello")
+                            return false
+                        }
+                    }else{
+                        console.log("false")
+                        return false
+                    }
+                }
+            }
+
+            function component(width, height, color, x, y) {
+                //console.log("hello")
+                this.width = width;
+                this.height = height;
+                this.x = x;
+                this.y = y;    
+                this.update = function(){
+                    ctx = myGameArea.context;
+                    ctx.fillStyle = color;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }; 
+            }
+
+            function end(){
+                myGameArea.clear()
+                ctx=myGameArea.context;
+                ctx.font="30px Arial"
+                ctx.fillText("Game Over", 250,150)
+                ctx.fillText("Your Score was: "+score, 250, 200)
+                document.getElementById("buttons").innerHTML='<button onclick="startGame(); disappear()" style="position: absolute; top:250px; left:300px;">Play Again</button>';
+            }
+
+            function disappear(){
+                document.getElementById("buttons").innerHTML="";
+            }
+
+            function updateGameArea(){
+                myGameArea.clear();
+                myGameArea.frameNo += 1;
+                if (myGameArea.frameNo == 1 || everyinterval(150)) {
+                    start=Math.floor(Math.random()*500)
+                    console.log(start)
+                    myObstacles.push(new enemy(20,start, 5, "red"))
+                }
+                if(everyinterval(50)){
+                    score+=1;
+                }
+                if(everyinterval(1000)){
+                    for(i=0;i<myObstacles.length;i++){
+                        if(myObstacles[i].speedX>0){
+                            myObstacles[i].speedX+=2;
+                        }else{
+                            myObstacles[i].speedX+=-2;
+                        }
+                        if(myObstacles[i].speedY>0){
+                            myObstacles[i].speedY+=2;
+                        }else{
+                            myObstacles[i].speedY+=-2;
+                        }
+                        //myObstacles[i].speedY+=2;
+                    }
+                }
+                //console.log(myObstacles)
+                for(i=0;i<myObstacles.length;i++){
+                    if(myObstacles[i].x>935){
+                        myObstacles[i].speedX=-(myObstacles[i].speedX);
+                    }
+                    if(myObstacles[i].x<0){
+                        myObstacles[i].speedX=-(myObstacles[i].speedX);
+                    }
+                    if(myObstacles[i].y>540){
+                        myObstacles[i].speedY=-(myObstacles[i].speedY);
+                    }
+                    if(myObstacles[i].y<0){
+                        myObstacles[i].speedY=-(myObstacles[i].speedY);
+                    }
+                    myObstacles[i].x+=myObstacles[i].speedX;
+                    myObstacles[i].y+=myObstacles[i].speedY;
+                    myObstacles[i].update()
+                    if(myObstacles[i].crashWith(myGamePiece)) {
+                        console.log(myGamePiece.y)
+                        console.log(myObstacles[i].y)
+                        console.log(myGamePiece.x)
+                        console.log(myObstacles[i].x)
+                        myGameArea.stop();
+                        //myGameArea.canvas.width=0
+                        //alert(score)
+                        console.log("your score is: "+score)
+                        end()
+                        return;
+                    } 
+                }
+
+
+                
+                myGamePiece.update();
+            }
+
+        </script>
+    </body>
+</html>
