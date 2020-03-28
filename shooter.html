@@ -19,9 +19,18 @@
 
         <script>
             var myGamePiece;
-            var myObstacles=[];
+            var myBullets=[];
+            var enemies=[];
+            var enemyBullets=[];
+            var spawnspeed=1000;
+            var score=0;
 
             function startGame(){
+                myBullets=[];
+                enemies=[];
+                enemyBullets=[];
+                spawnspeed=1000;
+                score=0;
                 myGameArea.start()
                 myGamePiece=new component(50,50,"red",20,20)
             }
@@ -37,6 +46,7 @@
                     this.interval = setInterval(updateGameArea,20);
                     window.addEventListener('keydown',  (e)=> {
                         myGameArea.key = e.keyCode;
+                        //console.log(e.keyCode)
                     })
                     window.addEventListener('keyup', (e)=> {
                         myGameArea.key = false;
@@ -44,7 +54,7 @@
                     window.addEventListener('click', (e)=> {
                         //myGameArea.key = false;
                         //console.log(e)
-                        myObstacles.push(new bullet(myGamePiece.x, myGamePiece.y, "blue", e.x-10, e.y-10))
+                        myBullets.push(new bullet(myGamePiece.x, myGamePiece.y, "blue", e.x-10, e.y-10))
                         //new bullet(myGamePiece.x, myGamePiece.y, "blue", e.x-15, e.y-15)
                         
                     })
@@ -61,22 +71,48 @@
                 this.y=y;
                 this.startx=x;
                 this.starty=y;
-                
                 this.finalx=destinationx;
                 this.finaly=destinationy;
+                this.width=10;
+                this.height=10;
                 if(x!=destinationx){
                     this.slope=((destinationy-y)/(destinationx-x));
                 }else{
                     this.slope=0;
                 }
                 
-                console.log(this.slope)
+                //console.log(this.slope)
                 this.update=()=>{
                     ctx=myGameArea.context;
                     ctx.fillStyle=color;
                     ctx.fillRect(this.x, this.y, 10,10)
-                    //console.log(myObstacles)
+                    //console.log(myBullets)
+                }; this.crashWith = function(otherobj) {
+                    //console.log(otherobj)
+                    //console.log(this)
+                        var myleft = this.x;
+                        var myright = this.x + (this.width);
+                        var mytop = this.y;
+                        var mybottom = this.y + (this.height);
+                        var otherleft = otherobj.x;
+                        var otherright = otherobj.x + (otherobj.width);
+                        var othertop = otherobj.y;
+                        var otherbottom = otherobj.y + (otherobj.height);
+                        var crash = true;
+                    if ((mybottom < othertop) ||
+                    (mytop > otherbottom) ||
+                    (myright < otherleft) ||
+                    (myleft > otherright)) {
+                        crash = false;
+                    }
+                    return crash;
+                }; 
+            }
+            function everyinterval(n) {
+                if ((myGameArea.frameNo / n) % 1 == 0) {
+                    return true;
                 }
+                return false;
             }
             function component(x,y,color, width, height){
                 this.x=x;
@@ -88,59 +124,189 @@
                     ctx.fillStyle=color;
                     ctx.fillRect(this.x,this.y,this.width, this.height)
 
+                }; this.crashWith = function(otherobj) {
+                        var myleft = this.x;
+                        var myright = this.x + (this.width);
+                        var mytop = this.y;
+                        var mybottom = this.y + (this.height);
+                        var otherleft = otherobj.x;
+                        var otherright = otherobj.x + (otherobj.width);
+                        var othertop = otherobj.y;
+                        var otherbottom = otherobj.y + (otherobj.height);
+                        var crash = true;
+                    if ((mybottom < othertop) ||
+                    (mytop > otherbottom) ||
+                    (myright < otherleft) ||
+                    (myleft > otherright)) {
+                        crash = false;
+                    }
+                    return crash;
+                }
+            }
+            function enemy(x,y,color, width, height, destinationx, destinationy){
+                this.x=x;
+                this.y=y;
+                this.width = width;
+                this.height = height;
+                this.startx=x;
+                this.starty=y;
+                this.finalx=destinationx;
+                this.finaly=destinationy;
+                if(x!=destinationx){
+                    this.slope=((destinationy-y)/(destinationx-x));
+                }else{
+                    this.slope=0;
+                }
+                this.update=()=>{
+                    ctx=myGameArea.context;
+                    ctx.fillStyle=color;
+                    ctx.fillRect(this.x,this.y,this.width, this.height)
+
+                }; this.crashWith = (otherobj)=> {
+                        var myleft = this.x;
+                        var myright = this.x + (this.width);
+                        var mytop = this.y;
+                        var mybottom = this.y + (this.height);
+                        var otherleft = otherobj.x;
+                        var otherright = otherobj.x + (otherobj.width);
+                        var othertop = otherobj.y;
+                        var otherbottom = otherobj.y + (otherobj.height);
+                        var crash = true;
+                    if ((mybottom < othertop) ||
+                    (mytop > otherbottom) ||
+                    (myright < otherleft) ||
+                    (myleft > otherright)) {
+                        crash = false;
+                    }
+                    return crash;
                 }
             }
 
+
+            function end(){
+                myGameArea.clear()
+                ctx=myGameArea.context;
+                ctx.font="30px Arial"
+                ctx.fillText("Game Over", 250,150)
+                ctx.fillText("Your Score was: "+score, 250, 200)
+                document.getElementById("buttons").innerHTML='<button onclick="startGame(); disappear();" style="position: absolute; top:250px; left:300px;">Play Again</button>';
+            }
             
+            function disappear(){
+                document.getElementById("buttons").innerHTML="";
+            }
+
             function updateGameArea(){
                 myGameArea.clear()
-                for(i=0; i<myObstacles.length;i++){
-
- 
-
-                    if(myObstacles[i].finalx>myObstacles[i].startx&&myObstacles[i].finaly<myObstacles[i].starty){
-                        //quadrant 1
-                        //console.log(1)
-                        var angle=Math.atan(Math.abs(myObstacles[i].slope), 1)
-                        var base=2*Math.cos(angle)
-                        var height=2*Math.sin(angle)
-                        myObstacles[i].x+=base;
-                        myObstacles[i].y+=-height;
-                    }else if(myObstacles[i].finalx<myObstacles[i].startx&&myObstacles[i].finaly<myObstacles[i].starty){
-                        //quadrant 2
-                        //console.log(2)
-                        var angle=Math.atan(Math.abs(myObstacles[i].slope), 1)
-                        var base=2*Math.cos(angle)
-                        var height=2*Math.sin(angle)
-                        myObstacles[i].x+=-base;
-                        myObstacles[i].y+=-height;
-                    }else if(myObstacles[i].finalx<myObstacles[i].startx&&myObstacles[i].finaly>myObstacles[i].starty){
-                        //quadrant 3
-                        //console.log(3)
-                        var angle=Math.atan(Math.abs(myObstacles[i].slope), 1)
-                        var base=2*Math.cos(angle)
-                        var height=2*Math.sin(angle)
-                        myObstacles[i].x+=-base;
-                        myObstacles[i].y+=height;
-                    }else if(myObstacles[i].finalx>myObstacles[i].startx&&myObstacles[i].finaly>myObstacles[i].starty){
-                        //quadrant 4
-                        //console.log(4)
-                        var angle=Math.atan(Math.abs(myObstacles[i].slope), 1)
-                        var base=2*Math.cos(angle)
-                        var height=2*Math.sin(angle)
-                        myObstacles[i].x+=base;
-                        myObstacles[i].y+=height;
+                if(everyinterval(spawnspeed)){
+                    console.log(Math.floor(Math.random()*2))
+                    var num = Math.floor(Math.random()*4);
+                    if(num==0){
+                        var second=Math.floor(Math.random()*(myGameArea.canvas.height-10));
+                        enemies.push(new enemy(0, second,"green", 20, 20, myGamePiece.x, myGamePiece.y))
+                    }else if (num==1){
+                        var second=Math.floor(Math.random()*(myGameArea.canvas.width-10));
+                        enemies.push(new enemy(second, 0,"green", 20, 20, myGamePiece.x, myGamePiece.y))
+                    }else if(num==2){
+                        var second=Math.floor(Math.random()*(myGameArea.canvas.height-10));
+                        enemies.push(new enemy( myGameArea.canvas.width,second,"green", 20, 20, myGamePiece.x, myGamePiece.y))
+                    }else if(num==3){
+                        var second=Math.floor(Math.random()*(myGameArea.canvas.width-10));
+                        enemies.push(new enemy(second, myGameArea.canvas.height,"green", 20, 20, myGamePiece.x, myGamePiece.y))
                     }
+                    //enemies.shift()
+                    //console.log(enemies)
+                }
+                if(everyinterval(1)){
+                    if(spawnspeed!=1){
+                        spawnspeed+=-1;
+                    }
+                }
+
+                if (myGameArea.key && myGameArea.key == 38 && myGamePiece.y>0) {myGamePiece.y += -5; }
+                if (myGameArea.key && myGameArea.key == 87 && myGamePiece.y>0) {myGamePiece.y += -5; }
+
+                if (myGameArea.key && myGameArea.key == 40&& myGamePiece.y<520) {myGamePiece.y += 5; }
+                if (myGameArea.key && myGameArea.key == 83&& myGamePiece.y<520) {myGamePiece.y += 5; }
+
+                if (myGameArea.key && myGameArea.key == 37&& myGamePiece.x>0) {myGamePiece.x += -5; }
+                if (myGameArea.key && myGameArea.key == 65&& myGamePiece.x>0) {myGamePiece.x += -5; }
+
+                if (myGameArea.key && myGameArea.key == 39&& myGamePiece.x<940) {myGamePiece.x += 5; }
+                if (myGameArea.key && myGameArea.key == 68&& myGamePiece.x<940) {myGamePiece.x += 5; }
+                myGameArea.frameNo+=1;
+                myGamePiece.update()
+
+                for(i=0; i<myBullets.length;i++){
+                    var angle=Math.atan(Math.abs(myBullets[i].slope), 1)
+                    var base=2*Math.cos(angle)
+                    var height=2*Math.sin(angle)
+                    if(myBullets[i].finalx>myBullets[i].startx&&myBullets[i].finaly<myBullets[i].starty){
+                        //quadrant 1
+                        myBullets[i].x+=base;
+                        myBullets[i].y+=-height;
+                    }else if(myBullets[i].finalx<myBullets[i].startx&&myBullets[i].finaly<myBullets[i].starty){
+                        //quadrant 2
+                        myBullets[i].x+=-base;
+                        myBullets[i].y+=-height;
+                    }else if(myBullets[i].finalx<myBullets[i].startx&&myBullets[i].finaly>myBullets[i].starty){
+                        //quadrant 3
+                        myBullets[i].x+=-base;
+                        myBullets[i].y+=height;
+                    }else if(myBullets[i].finalx>myBullets[i].startx&&myBullets[i].finaly>myBullets[i].starty){
+                        //quadrant 4
+                        myBullets[i].x+=base;
+                        myBullets[i].y+=height;
+                    }
+                    myBullets[i].update()
+                }
 
 
-                    myObstacles[i].update()
+                //console.log(enemies.length)
+                for(i=0;i<enemies.length;i++){
+                    //enemies[i].x+=1;
+                    if(enemies[i].crashWith(myGamePiece)){
+                        console.log("dead")
+                        myGameArea.stop()
+                        end()
+                        console.log(score)
+                        break
+                    }
+                    var slope = ((myGamePiece.y-enemies[i].y)/(myGamePiece.x-enemies[i].x))
+                    var angle = Math.atan(Math.abs(slope), 1)
+                    var base=Math.cos(angle)
+                    var height=Math.sin(angle)
+                    if(myGamePiece.x>enemies[i].x&&myGamePiece.y<enemies[i].y){
+                        //quadrant 1
+                        enemies[i].x+=base;
+                        enemies[i].y+=-height;
+                    }else if(myGamePiece.x<enemies[i].x&&myGamePiece.y<enemies[i].y){
+                        //quadrant 2
+                        enemies[i].x+=-base;
+                        enemies[i].y+=-height;
+                    }else if(myGamePiece.x<enemies[i].x&&myGamePiece.y>enemies[i].y){
+                        //quadrant 3
+                        enemies[i].x+=-base;
+                        enemies[i].y+=height;
+                    }else if(myGamePiece.x>enemies[i].x&&myGamePiece.y>enemies[i].y){
+                        //quadrant 4
+                        enemies[i].x+=base;
+                        enemies[i].y+=height;
+                    }
+                    //console.log(myBullets.length)
+                    for(j=0;j<myBullets.length;j++){
+                        if(myBullets[j].crashWith(enemies[i])){
+                           console.log("hit")
+                           enemies.splice(i, 1)
+                           score+=1;
+                           //myGameArea.stop()
+                        }
+                    }
+                    enemies[i].update()
                 }
                 
-                if (myGameArea.key && myGameArea.key == 38 && myGamePiece.y>0) {myGamePiece.y += -5; }
-                if (myGameArea.key && myGameArea.key == 40&& myGamePiece.y<520) {myGamePiece.y += 5; }
-                if (myGameArea.key && myGameArea.key == 37&& myGamePiece.x>0) {myGamePiece.x += -5; }
-                if (myGameArea.key && myGameArea.key == 39&& myGamePiece.x<940) {myGamePiece.x += 5; }
-                myGamePiece.update()
+                
+                //myGameArea.clear()
             }
 
         </script>
