@@ -32,7 +32,7 @@
                 spawnspeed=1000;
                 score=0;
                 myGameArea.start()
-                myGamePiece=new component(50,50,"red",20,20)
+                myGamePiece=new component(400,200,"black",20,20)
             }
 
             myGameArea={
@@ -144,6 +144,7 @@
                 }
             }
             function enemy(x,y,color, width, height, destinationx, destinationy){
+                this.reload=0;
                 this.x=x;
                 this.y=y;
                 this.width = width;
@@ -218,7 +219,7 @@
                     //console.log(enemies)
                 }
                 if(everyinterval(1)){
-                    if(spawnspeed!=1){
+                    if(spawnspeed!=75){
                         spawnspeed+=-1;
                     }
                 }
@@ -238,6 +239,13 @@
                 myGamePiece.update()
 
                 for(i=0; i<myBullets.length;i++){
+                    for(j=0;j<enemyBullets.length;j++){
+                        if(enemyBullets[j].crashWith(myBullets[i])){
+                            console.log("crash")
+                            enemyBullets.splice(j,1)
+                            myBullets.splice(i,1)
+                        }
+                    }
                     var angle=Math.atan(Math.abs(myBullets[i].slope), 1)
                     var base=2*Math.cos(angle)
                     var height=2*Math.sin(angle)
@@ -260,7 +268,35 @@
                     }
                     myBullets[i].update()
                 }
-
+                for(i=0;i<enemyBullets.length;i++){
+                    if(enemyBullets[i].crashWith(myGamePiece)){
+                        myGameArea.stop()
+                        end()
+                    }
+                    
+                    var angle=Math.atan(Math.abs(enemyBullets[i].slope), 1)
+                    var base=2*Math.cos(angle)
+                    var height=2*Math.sin(angle)
+                    if(enemyBullets[i].finalx>enemyBullets[i].startx&&enemyBullets[i].finaly<enemyBullets[i].starty){
+                        //quadrant 1
+                        enemyBullets[i].x+=base;
+                        enemyBullets[i].y+=-height;
+                    }else if(enemyBullets[i].finalx<enemyBullets[i].startx&&enemyBullets[i].finaly<enemyBullets[i].starty){
+                        //quadrant 2
+                        enemyBullets[i].x+=-base;
+                        enemyBullets[i].y+=-height;
+                    }else if(enemyBullets[i].finalx<enemyBullets[i].startx&&enemyBullets[i].finaly>enemyBullets[i].starty){
+                        //quadrant 3
+                        enemyBullets[i].x+=-base;
+                        enemyBullets[i].y+=height;
+                    }else if(enemyBullets[i].finalx>enemyBullets[i].startx&&enemyBullets[i].finaly>enemyBullets[i].starty){
+                        //quadrant 4
+                        enemyBullets[i].x+=base;
+                        enemyBullets[i].y+=height;
+                    }
+                    
+                    enemyBullets[i].update()
+                }
 
                 //console.log(enemies.length)
                 for(i=0;i<enemies.length;i++){
@@ -302,6 +338,13 @@
                            myBullets.splice(j, 1)
                            //myGameArea.stop()
                         }
+                    }
+                    if(enemies[i].reload==100){
+                        console.log("shot")
+                        enemyBullets.push(new bullet(enemies[i].x, enemies[i].y, "red", myGamePiece.x, myGamePiece.y))
+                        enemies[i].reload=0;
+                    }else{
+                        enemies[i].reload+=1;
                     }
                     enemies[i].update()
                 }
